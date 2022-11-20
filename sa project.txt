@@ -1,0 +1,161 @@
+					Amazon CloudFront media streaming
+				      =====================================
+
+
+step-1:
+----------
+create an AWS S3 input bucket 
+	i. Give Unique name.
+	ii.Make bucket as public .
+
+
+step-2:
+---------
+create IAM roles:
+  	i.AWSLambdaBasicExecutionRole
+	ii.AmazonS3FullAccess
+
+	
+
+Media Convert Role:
+	i.AmazonS3FullAccess
+	ii.AmazonAPIGatewayInvokeFullAccess
+
+Add an inline policy to first created role.
+
+Ref:
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+            ],
+            "Resource": "*",
+            "Effect": "Allow",
+            "Sid": "Logging"
+        },
+        {
+            "Action": [
+                "iam:PassRole"
+            ],
+            "Resource": [
+                "<ARN for vod-MediaConvertRole>"
+            ],
+            "Effect": "Allow",
+            "Sid": "PassRole"
+        },
+        {
+            "Action": [
+                "mediaconvert:*"
+            ],
+            "Resource": [
+                "*"
+            ],
+            "Effect": "Allow",
+            "Sid": "MediaConvertService"
+        }
+    ]
+}
+
+
+step-3:
+--------
+create a lambda function.
+	environment - python 3.7
+	i.give the first created role.
+
+step-4:
+--------
+ upload the code snippets into s3 and import it to lambda function.
+
+
+step-5:
+--------
+Create 3 environment variables for the lambda function.
+
+
+	i.DestinationBucket = destination bucket name.(create one destination bucket)
+	ii. MediaConvertRole = arn of the media convert role.
+	iii. Application = somename like VOD(Video On Demand)
+
+ Change the timeout setting to 2 min.
+
+
+step-6:
+--------
+create a test event for the lambda function.
+
+
+{
+  "Records": [
+      {
+          "eventVersion": "2.0",
+          "eventTime": "2017-08-08T00:19:56.995Z",
+          "requestParameters": {
+              "sourceIPAddress": "54.240.197.233"
+          },
+          "s3": {
+              "configurationId": "90bf2f16-1bdf-4de8-bc24-b4bb5cffd5b2",
+              "object": {
+                  "eTag": "2fb17542d1a80a7cf3f7643da90cc6f4-18",
+                  "key": "vodconsole/TRAILER.mp4",
+                  "sequencer": "005989030743D59111",
+                  "size": 143005084
+              },
+              "bucket": {
+                  "ownerIdentity": {
+                      "principalId": ""
+                  },
+                  "name": "input-bucket name",
+                  "arn": "input-bucket arn"
+              },
+              "s3SchemaVersion": "1.0"
+          },
+          "responseElements": {
+              "x-amz-id-2": "K5eJLBzGn/9NDdPu6u3c9NcwGKNklZyY5ArO9QmGa/t6VH2HfUHHhPuwz2zH1Lz4",
+              "x-amz-request-id": "E68D073BC46031E2"
+          },
+          "awsRegion": "us-west-2",
+          "eventName": "ObjectCreated:CompleteMultipartUpload",
+          "userIdentity": {
+              "principalId": ""
+          },
+          "eventSource": "aws:s3"
+      }
+  ]
+}
+	
+
+step-7:
+--------
+Test the function.
+
+step-8:
+---------
+Create S3 trigger to Lambda
+
+select Bucket.
+Event type - PUT
+
+step-9:
+--------
+Upload any video file to input S3 bucket
+
+step-10:
+-------
+Verify the output.
+
+
+step-11:
+---------
+Create one cloud front distribution for the output bucket.
+
+Test the cloud front distribution.
+
+7.49  - 7.00
+7.37 - 7.27
+6.56 - 1.36 stop and 4.06 to 5.08 and 6.03 to last
+3.44 - 0 to 1.23
